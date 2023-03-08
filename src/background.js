@@ -9,47 +9,77 @@ chrome.runtime.onInstalled.addListener(function () {
       },
       function (tabs) {
         chrome.tabs.sendMessage(tabs[0].id, message, function (response) {
-          console.log('来自content-script的回复: ' + response)
+          console.log('content-script发来的消息 ' + response)
         })
       }
     )
   }
 
-  chrome.webRequest.onBeforeRequest.addListener(
-    function (detail) {
-      if (
-        detail &&
-        detail.requestBody &&
-        detail.requestBody.raw &&
-        detail.requestBody.raw[0] &&
-        detail.requestBody.raw[0].bytes
-      ) {
-        // bytes是ArrayBuffer
-        const bytes = detail.requestBody.raw[0].bytes
-        // 先将ArrayBuffer转为Uint8Array
-        const uint8_msg = new Uint8Array(bytes)
-        // 然后借助文本解码器，将Uint8Array转为字符串
-        const d = new TextDecoder('utf-8')
+  function handleDetail(detail) {
+    if (
+      detail &&
+      detail.requestBody &&
+      detail.requestBody.raw &&
+      detail.requestBody.raw[0] &&
+      detail.requestBody.raw[0].bytes
+    ) {
+      // bytes是ArrayBuffer
+      const bytes = detail.requestBody.raw[0].bytes
+      // 先将ArrayBuffer转为Uint8Array
+      const uint8_msg = new Uint8Array(bytes)
+      // 然后借助文本解码器，将Uint8Array转为字符串
+      const d = new TextDecoder('utf-8')
 
-        const code = d.decode(uint8_msg)
-        // code是表单格式的，由&和=连接起来的，这里把它切割开来组装成一个对象
-        const params = code.split('&').reduce((map, cur) => {
-          const pair = cur.split('=')
-          map[pair[0]] = decodeURIComponent(pair[1])
-          return map
-        }, {})
+      const code = d.decode(uint8_msg)
+      // code是表单格式的，由&和=连接起来的，这里把它切割开来组装成一个对象
+      const params = code.split('&').reduce((map, cur) => {
+        const pair = cur.split('=')
+        map[pair[0]] = decodeURIComponent(pair[1])
+        return map
+      }, {})
 
-        // 不要用window.atob对bas64进行解码，会导致中！文！乱！码！！
-        const json_str = base64_decode(params.data) // 这个就是神策埋点的入参
-        sendMessageToContentScript(json_str)
-      }
-    },
-    {
-      urls: ['https://sdata.xinli001.com/*']
-    },
-    ['requestBody']
-  )
+      // 不要用window.atob对bas64进行解码，会导致中！文！乱！码！！
+      const json_str = base64_decode(params.data) // 这个就是神策埋点的入参
+      sendMessageToContentScript(json_str)
+    }
+  }
+
+  function startListener() {
+    chrome.webRequest.onBeforeRequest.addListener(
+      handleDetail,
+      {
+        urls: ['https://sdata.xinli001.com/*']
+      },
+      ['requestBody']
+    )
+  }
+  
+  function closeListener() {
+    chrome.webRequest.onBeforeRequest.removeListener(
+      handleDetail,
+      {
+        urls: ['https://sdata.xinli001.com/*']
+      },
+      ['requestBody']
+    )
+  }
+
+  chrome.runtime.onMessage.addListener(function (
+    message,
+    sender,
+    sendResponse
+  ) {
+    console.log('popup-script发来的消息', message)
+    if (message.isIntercept) {
+      startListener()
+    } else {
+      closeListener()
+    }
+    sendResponse('ok!')
+  })
 })
+
+/********************************************************/
 
 function strtr(str, from, to) {
   // 来自: http://phpjs.org/functions/strtr/
