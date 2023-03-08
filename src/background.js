@@ -1,6 +1,11 @@
 chrome.runtime.onInstalled.addListener(function () {
   console.log('插件已被安装')
 
+  function setBadge(flag) {
+    chrome.browserAction.setBadgeText({ text: flag ? 'ON' : 'OFF' })
+    chrome.browserAction.setBadgeBackgroundColor({ color: [255, 0, 0, 255] })
+  }
+
   function sendMessageToContentScript(message) {
     chrome.tabs.query(
       {
@@ -82,6 +87,7 @@ chrome.runtime.onInstalled.addListener(function () {
     // 背景脚本初始化的时候，根据本地存储的状态，判断是否要开启监听
     let flag = data.flag
     flag ? startListener() : closeListener()
+    setBadge(flag)
   })
 })
 
