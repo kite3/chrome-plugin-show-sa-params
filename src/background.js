@@ -53,7 +53,7 @@ chrome.runtime.onInstalled.addListener(function () {
       ['requestBody']
     )
   }
-  
+
   function closeListener() {
     chrome.webRequest.onBeforeRequest.removeListener(
       handleDetail,
@@ -76,6 +76,12 @@ chrome.runtime.onInstalled.addListener(function () {
       closeListener()
     }
     sendResponse('ok!')
+  })
+
+  chrome.storage.sync.get('flag', function (data) {
+    // 背景脚本初始化的时候，根据本地存储的状态，判断是否要开启监听
+    let flag = data.flag
+    flag ? startListener() : closeListener()
   })
 })
 
