@@ -1,0 +1,20 @@
+{
+  "name": "chrome-plugin-show-sa-params",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kite3/chrome-plugin-show-sa-params.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kite3/chrome-plugin-show-sa-params/issues"
+  },
+  "homepage": "https://github.com/kite3/chrome-plugin-show-sa-params#readme"
+}
