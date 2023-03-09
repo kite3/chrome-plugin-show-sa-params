@@ -9,14 +9,16 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   }
   let properties = data.properties
   for (let key in properties) {
-    if (typeof properties[key] === 'string') {
-      if (properties[key].trim() === '') {
-        target[key] = ' '
+    if (!key.startsWith('$')) {
+      if (typeof properties[key] === 'string') {
+        if (properties[key].trim() === '') {
+          target[key] = ' '
+        } else {
+          target[key] = properties[key]
+        }
       } else {
-        target[key] = properties[key]
+        target[key] = JSON.stringify(properties[key])
       }
-    } else {
-      target[key] = JSON.stringify(properties[key])
     }
   }
 
